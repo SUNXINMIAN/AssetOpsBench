@@ -23,6 +23,7 @@ from servers.iot.models import (
     SensorsResult,
     SitesResult,
     StreamExtentResult,
+    SensorCountResult,
 )
 from servers.iot.telemetry_helper import (
     _SensorAccumulator,
@@ -413,6 +414,42 @@ def installed_sensors(
             sensors=names,
             message=f"{len(names)} sensors installed on {asset_id}: {', '.join(names)}.",
         )
+    except Exception as e:
+        logger.error(f"installed_sensors failed: {e}")
+        return _db_error(asset_db, e)
+
+# sxm: a new tool
+@mcp.tool(title="Count Asset Sensors")
+def asset_sensor_count(
+    site_name: str, asset_id: str
+) -> SensorCountResult:
+    if not _is_known_site(site_name):
+        return _missing_db_error(asset_db) or ErrorResult(
+            error=f"unknown site {site_name}"
+        )
+    missing = _missing_db_error(asset_db)
+    if missing:
+        return missing
+    
+    try:
+        res = asset_db.find(
+            {"siteid": site_name, "assetnum": asset_id},
+            fields=["assetnum", "sensors"],
+            limit=1,
+        )
+        docs = res.get("docs", [])
+        if not docs:
+            return _missing_db_error(asset_db) or ErrorResult(
+                error=f"unknown asset_id {asset_id} at site {site_name}"
+            )
+        names = list(docs[0].get("sensors") or [])
+        return SensorCountResult(
+            site_name=site_name,
+            asset_id=asset_id,
+            count=len(names),
+            message=f"{len(names)} sensors installed on {asset_id}: {', '.join(names)}.",
+        )
+
     except Exception as e:
         logger.error(f"installed_sensors failed: {e}")
         return _db_error(asset_db, e)

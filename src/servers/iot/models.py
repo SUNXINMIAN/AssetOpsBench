@@ -134,3 +134,10 @@ class SensorStatsResult(BaseModel):
     asset_id: str
     stats: List[SensorStat]
     message: str
+
+# sxm: my model
+class SensorCountResult(BaseModel):
+    site_name: str
+    asset_id: str
+    count: int
+    message: str
