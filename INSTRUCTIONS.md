@@ -68,7 +68,7 @@ docker compose -f src/couchdb/docker-compose.yaml up -d
 Verify CouchDB is running:
 
 ```bash
-curl -X GET http://localhost:5984/
+curl -X GET http://localhost:15984/
 ```
 
 ### 4. Run an agent
